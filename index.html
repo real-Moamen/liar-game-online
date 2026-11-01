@@ -1,97 +1,266 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كذاب Pro - v15.1</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=15.1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>كذّاب | لعبة الورق أونلاين</title>
+    <meta name="description" content="العب كذّاب مع ربعك أونلاين: افتح طاولة، شارك الكود، وتكلّموا بالفويس. بدون تسجيل وبدون تحميل.">
+    <meta name="theme-color" content="#0a1510">
+    <meta property="og:title" content="كذّاب — لعبة الورق أونلاين">
+    <meta property="og:description" content="افتح طاولة وشارك الكود مع ربعك. صادق ولا كذاب؟">
+    <meta property="og:type" content="website">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+    <script type="module" src="js/app.js"></script>
 </head>
+
 <body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></symbol>
+            <symbol id="i-mic-off" viewBox="0 0 24 24"><path d="m3 3 18 18M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V6a3 3 0 0 0-5.7-1.3"/><path d="M19 11a7 7 0 0 1-1.2 3.9M5 11a7 7 0 0 0 10.6 6M12 18v3"/></symbol>
+            <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+            <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+            <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
+            <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+            <symbol id="i-crown" viewBox="0 0 24 24"><path d="m3 8 4.5 4L12 5l4.5 7L21 8l-2 11H5Z"/></symbol>
+            <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z"/><path d="M4 19V5M19 19v2H6"/></symbol>
+            <symbol id="i-exit" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></symbol>
+            <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="m3 3 18 18M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.7M19 12.9a10 10 0 0 0-2.3-1.6M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 10.7 5M12 20h.01"/></symbol>
+            <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+        </defs>
+    </svg>
 
-    <button id="btn-mic" class="btn-gray" onclick="toggleMic()" style="position: fixed; top: 15px; left: 15px; z-index: 5000; font-size: 1rem; padding: 8px 15px; border-radius: 20px; border: 2px solid #555; box-shadow: 0 4px 10px rgba(0,0,0,0.8);">
-        🔇 المايك مقفل
-    </button>
-
-    <div id="action-overlay" class="action-overlay" style="display:none;">
-        <h1 id="action-text" class="action-text"></h1>
-    </div>
-
-    <div id="claim-modal" class="overlay" style="display:none; z-index: 3500;">
-        <div class="modal-box">
-            <div class="modal-title" style="color: var(--gold-primary); font-size: 2rem;">اختر البطاقة</div>
-            <div class="claim-grid" id="claim-grid"></div>
-            <button class="btn-gray" style="width: 100%; margin-top: 15px;" onclick="closeClaimModal()">إلغاء الرجوع لليد</button>
-        </div>
-    </div>
-
-    <div id="custom-modal" class="overlay" style="display:none; z-index: 3000;">
-        <div class="modal-box">
-            <div id="modal-title" class="modal-title">تنبيه</div>
-            <div id="modal-body" class="modal-body">نص الرسالة هنا</div>
-            <button class="btn-gold" style="width: 100%;" onclick="closeModal()">حسناً</button>
-        </div>
-    </div>
-
-    <div id="win-modal" class="overlay" style="display:none; z-index: 4000;">
-        <div class="modal-box win-box">
-            <div class="modal-title" style="color: var(--gold-primary); font-size: 2.5rem;">🏆 فــــائــــز 🏆</div>
-            <div id="win-body" class="modal-body" style="font-size: 1.5rem; color: white; font-weight: bold;">اللاعب فاز باللعبة!</div>
-            <button id="btn-play-again" class="btn-gold" style="width: 100%; display:none;" onclick="playAgain()">لعب من جديد 🔄</button>
-            <p id="wait-host-msg" style="color: #aaa; margin-top: 15px; display:none;">بانتظار المضيف...</p>
-        </div>
-    </div>
-
-    <div id="lobby" class="overlay">
-        <div class="setup-box" id="initial-setup">
-            <h1 style="color: var(--gold-primary); margin-bottom: 5px;">كذاب Pro 👑</h1>
-            <p style="color:#aaa; font-size: 0.9rem; margin-top: 0;">v15.1 (الفويس تشات)</p>
-            <input type="text" id="player-name" placeholder="اكتب اسمك هنا" maxlength="12">
-            <button class="btn-gold" style="width: 100%; margin-bottom: 10px;" onclick="startHost()">إنشاء طاولة (Host)</button>
-            <div style="display:flex; gap:10px; width: 100%;">
-                <input type="text" id="join-id" placeholder="كود الطاولة" style="margin:0; width: 60%; text-transform: uppercase;">
-                <button class="btn-gray" style="width: 40%;" onclick="joinRoom()">دخول</button>
+    <!-- HOME -->
+    <main id="screen-home" class="screen screen-home">
+        <div class="home-card">
+            <div class="brand">
+                <div class="brand-cards" aria-hidden="true">
+                    <span class="mini-card">K</span><span class="mini-card is-back"></span><span class="mini-card">A</span>
+                </div>
+                <h1 class="brand-title">كذّاب</h1>
+                <p class="brand-tagline">لعبة الورق والكذب مع ربعك. أونلاين، بدون تسجيل.</p>
             </div>
+
+            <div id="invite-banner" class="invite-banner" hidden>
+                انعزمت على طاولة <b id="invite-code" dir="ltr"></b>
+            </div>
+
+            <form id="home-form" class="home-form" novalidate>
+                <div class="field">
+                    <label for="name-input">اسمك</label>
+                    <input id="name-input" type="text" maxlength="14" autocomplete="nickname" enterkeyhint="go">
+                    <p class="field-error" id="name-error" hidden>اكتب اسمك عشان يعرفك ربعك</p>
+                </div>
+
+                <button type="button" id="btn-create" class="btn btn-primary btn-lg">إنشاء طاولة جديدة</button>
+
+                <div class="divider" id="home-divider"><span>أو ادخل طاولة ربعك</span></div>
+
+                <div class="field">
+                    <label for="code-input">كود الطاولة</label>
+                    <div class="join-row">
+                        <input id="code-input" type="text" maxlength="5" dir="ltr" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="مثلاً K7QXP" enterkeyhint="go">
+                        <button type="submit" id="btn-join" class="btn btn-secondary">دخول</button>
+                    </div>
+                    <p class="field-error" id="code-error" hidden>الكود ٥ حروف أو أرقام</p>
+                </div>
+            </form>
+
+            <button type="button" class="link-btn js-rules"><svg class="icon"><use href="#i-book"/></svg> طريقة اللعب</button>
+        </div>
+        <p class="home-foot">يشتغل على الجوال والكمبيوتر · من ٢ إلى ٨ لاعبين</p>
+    </main>
+
+    <!-- LOBBY -->
+    <main id="screen-lobby" class="screen screen-lobby" hidden>
+        <header class="topbar">
+            <button type="button" class="icon-btn js-leave" aria-label="خروج" title="خروج"><svg class="icon"><use href="#i-exit"/></svg></button>
+            <div class="topbar-title">غرفة الانتظار</div>
+            <button type="button" class="icon-btn js-mic" aria-label="تشغيل المايك" title="المايك"><svg class="icon"><use href="#i-mic-off"/></svg></button>
+        </header>
+
+        <div class="lobby-body">
+            <section class="code-card">
+                <p class="code-label">كود الطاولة</p>
+                <div class="code-value" id="lobby-code" dir="ltr">·····</div>
+                <div class="code-actions">
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-copy-code"><svg class="icon"><use href="#i-copy"/></svg> نسخ الكود</button>
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-share-link"><svg class="icon"><use href="#i-share"/></svg> مشاركة الرابط</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>اللاعبين</h2>
+                    <span class="pill" id="lobby-count">1 / 8</span>
+                </div>
+                <ul class="player-list" id="lobby-players"></ul>
+            </section>
+
+            <section class="panel" id="lobby-settings">
+                <div class="panel-head"><h2>الكوتشينة</h2></div>
+                <div class="segmented" id="deck-options" role="radiogroup" aria-label="حجم الكوتشينة">
+                    <button type="button" role="radio" data-copies="auto">تلقائي</button>
+                    <button type="button" role="radio" data-copies="4">عادية (52)</button>
+                    <button type="button" role="radio" data-copies="8">مزدوجة (104)</button>
+                </div>
+                <p class="muted small" id="deck-hint"></p>
+            </section>
         </div>
 
-        <div class="setup-box" id="waiting-area" style="display:none;">
-            <h2 style="color: white; margin-bottom: 10px;">كود الطاولة:</h2>
-            <div id="room-code" class="room-code-display selectable">...</div>
-            <p style="font-size: 1.2rem; margin-bottom: 10px;">عدد اللاعبين: <strong id="peer-count" style="color:var(--gold-primary)">1</strong></p>
-            
-            <div class="lobby-players-list" id="lobby-players-list"></div>
+        <footer class="lobby-foot">
+            <button type="button" id="btn-start" class="btn btn-primary btn-lg">وزّع الورق</button>
+            <p class="muted small center" id="start-hint"></p>
+        </footer>
+    </main>
 
-            <button class="btn-gold" id="start-game-btn" onclick="this.disabled=true; broadcastStart()" style="display:none; width: 100%; font-size: 1.2rem; margin-top: 15px;">توزيع الورق 🃏</button>
+    <!-- GAME -->
+    <main id="screen-game" class="screen screen-game" hidden>
+        <header class="topbar">
+            <button type="button" class="room-chip" id="room-chip" title="نسخ الكود"><span class="muted">طاولة</span> <b id="game-code" dir="ltr"></b></button>
+            <div class="status-pill" id="status-pill" aria-live="polite"></div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn js-mic" aria-label="تشغيل المايك" title="المايك"><svg class="icon"><use href="#i-mic-off"/></svg></button>
+                <button type="button" class="icon-btn" id="btn-menu" aria-label="القائمة" title="القائمة"><svg class="icon"><use href="#i-menu"/></svg></button>
+            </div>
+        </header>
+
+        <section class="table-wrap">
+            <div class="table" id="table">
+                <div class="felt">
+                    <div class="center">
+                        <div class="claim" id="claim">
+                            <span class="claim-label" id="claim-label">لفة جديدة</span>
+                            <span class="claim-rank" id="claim-rank"></span>
+                        </div>
+                        <div class="pot" id="pot" aria-hidden="true"></div>
+                        <div class="pot-meta" id="pot-meta"></div>
+                    </div>
+                </div>
+                <div id="seats"></div>
+            </div>
+        </section>
+
+        <div class="log" id="log" aria-live="polite"></div>
+
+        <section class="hand-panel" id="hand-panel">
+            <div class="hand-head">
+                <span>أوراقك <b id="hand-count">0</b></span>
+                <span class="sel-summary" id="sel-summary"></span>
+                <button type="button" class="link-btn small" id="btn-clear" hidden>مسح الاختيار</button>
+            </div>
+            <div class="hand" id="hand"></div>
+            <div class="actions">
+                <button type="button" id="btn-bluff" class="btn btn-danger"><span class="btn-main">كذّاب!</span><span class="btn-sub" id="bluff-sub"></span></button>
+                <button type="button" id="btn-pass" class="btn btn-ghost">Pass</button>
+                <button type="button" id="btn-play" class="btn btn-primary btn-grow">نزّل</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rank picker -->
+    <dialog id="dlg-rank" class="sheet">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <h2 class="sheet-title">وش بتقول عنها؟</h2>
+        <p class="muted small" id="rank-sub"></p>
+        <div class="rank-grid" id="rank-grid"></div>
+        <button type="button" class="btn btn-ghost btn-block" data-close>رجوع</button>
+    </dialog>
+
+    <!-- Menu -->
+    <dialog id="dlg-menu" class="sheet">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <h2 class="sheet-title">الإعدادات</h2>
+        <div class="setting-row">
+            <label for="sfx-toggle">المؤثرات الصوتية</label>
+            <input type="checkbox" id="sfx-toggle" class="switch">
+        </div>
+        <div class="setting-row">
+            <label for="sfx-volume">مستوى الصوت</label>
+            <input type="range" id="sfx-volume" min="0" max="1" step="0.05">
+        </div>
+        <div class="setting-row">
+            <label for="voice-toggle">أسمع الفويس</label>
+            <input type="checkbox" id="voice-toggle" class="switch">
+        </div>
+        <div class="menu-actions">
+            <button type="button" class="btn btn-ghost btn-block js-rules"><svg class="icon"><use href="#i-book"/></svg> طريقة اللعب</button>
+            <button type="button" class="btn btn-ghost btn-block danger-text js-leave"><svg class="icon"><use href="#i-exit"/></svg> اطلع من الطاولة</button>
+        </div>
+        <button type="button" class="btn btn-secondary btn-block" data-close>تمام</button>
+    </dialog>
+
+    <!-- Rules -->
+    <dialog id="dlg-rules" class="sheet">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <h2 class="sheet-title">طريقة اللعب</h2>
+        <ol class="rules">
+            <li><b>الهدف:</b> أول واحد يخلّص ورقه يفوز.</li>
+            <li>أول لاعب في اللفة يختار رتبة (مثلاً <b>K</b>) وينزّل ورق مقلوب ويقول إنها K. صادق أو كذاب، كيفه.</li>
+            <li>اللي بعده ينزّل على نفس الرتبة، أو يسوّي <b>Pass</b>.</li>
+            <li>الـ Pass ينهي اللفة، واللي بعده يبدأ لفة جديدة برتبة جديدة. الكومة تبقى على الطاولة.</li>
+            <li>أي أحد يقدر يضغط <b>كذّاب!</b> على آخر ورق نزل، حتى لو مو دوره:
+                <ul>
+                    <li>طلع كذاب؟ ياخذ الكومة كلها، والدور لك.</li>
+                    <li>طلع صادق؟ أنت تاخذ الكومة، وهو يكمل.</li>
+                </ul>
+            </li>
+            <li>إذا خلّصت ورقك، تفوز لما تعدّي الحركة اللي بعدك بدون ما أحد يكشفك.</li>
+        </ol>
+        <p class="muted small"><b>طريقة الاختيار:</b> اضغط على الورقة عشان تختار وحدة زيادة، واضغط مطوّل عشان تختار الكل من نفس الرتبة.</p>
+        <button type="button" class="btn btn-secondary btn-block" data-close>فهمت</button>
+    </dialog>
+
+    <!-- Confirm -->
+    <dialog id="dlg-confirm" class="dialog">
+        <h2 class="sheet-title" id="confirm-title"></h2>
+        <p class="muted" id="confirm-body"></p>
+        <div class="dialog-actions">
+            <button type="button" class="btn btn-ghost" data-close>رجوع</button>
+            <button type="button" class="btn btn-danger" id="confirm-ok"></button>
+        </div>
+    </dialog>
+
+    <!-- Win -->
+    <dialog id="dlg-win" class="dialog dialog-win">
+        <div class="trophy" aria-hidden="true">🏆</div>
+        <h2 class="win-title" id="win-title"></h2>
+        <ol class="standings" id="standings"></ol>
+        <div class="win-actions" id="win-host-actions">
+            <button type="button" class="btn btn-primary btn-block" id="btn-again">جولة جديدة</button>
+            <button type="button" class="btn btn-ghost btn-block" id="btn-to-lobby">رجوع لغرفة الانتظار</button>
+        </div>
+        <p class="muted center waiting-dots" id="win-wait">بانتظار المضيف يبدأ جولة جديدة</p>
+    </dialog>
+
+    <!-- Bluff reveal -->
+    <div id="reveal" class="reveal" hidden>
+        <div class="reveal-inner">
+            <p class="reveal-title" id="reveal-title"></p>
+            <p class="reveal-claim" id="reveal-claim"></p>
+            <div class="reveal-cards" id="reveal-cards"></div>
+            <p class="reveal-verdict" id="reveal-verdict"></p>
         </div>
     </div>
 
-    <div id="action-log">مرحباً بكم في لعبة كذاب!</div>
-    <div id="status-bar">بانتظار البداية...</div>
-
-    <div class="table-area" id="table-area" style="display: none;">
-        <div id="claim-hologram" class="claim-hologram" style="display: none;">
-            المطلوب: <span id="claim-target-number">K</span>
-        </div>
-
-        <div class="poker-table">
-            <div id="pot-container" class="pot-container"></div>
-            <div id="avatars-container"></div>
-        </div>
-
-        <div id="pot-count-badge" class="pot-count-badge">الكومة: 0</div>
+    <div id="flash" class="flash" aria-hidden="true"></div>
+    <div id="conn-banner" class="conn-banner" hidden role="status">
+        <svg class="icon"><use href="#i-wifi-off"/></svg> <span id="conn-text"></span>
+        <button type="button" class="link-btn small" id="conn-home" hidden>الرئيسية</button>
     </div>
-
-    <div class="hand-container" id="hand-container" style="display: none;">
-        <div class="my-card-count">أوراقي: <span id="my-count-val">0</span> 🎴</div>
-        
-        <div class="hand" id="my-hand"></div>
-        <div class="controls">
-            <button class="btn-gold" id="btn-play" onclick="initiatePlay()">تنزيل الورق</button>
-            <button class="btn-gray" id="btn-pass" onclick="passTurn()">Pass 💨</button>
-            <button class="btn-red" id="btn-bluff" onclick="callBluff()">كــــذاب! 🚨</button>
-        </div>
-    </div>
-
-    <script src="script.js?v=15.1"></script>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+    <div id="confetti" class="confetti" aria-hidden="true"></div>
 </body>
+
 </html>
