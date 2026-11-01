@@ -91,6 +91,10 @@ const S = {
     wakeLock: null,
 };
 
+// Surface unexpected errors instead of freezing silently (helps debug on friends' phones).
+window.addEventListener('error', e => toast(`صار خطأ: ${e.message || e}`, 'error'));
+window.addEventListener('unhandledrejection', e => toast(`صار خطأ: ${e.reason?.message || e.reason}`, 'error'));
+
 // ---------- toasts / banners ----------
 function toast(msg, kind = 'info') {
     const t = el('div', { class: `toast toast-${kind}` }, msg);
@@ -183,8 +187,22 @@ function networkBlockedMsg() {
 
 function watchPeer(peer) {
     peer.on('disconnected', () => {
-        if (!S.leaving && !peer.destroyed) setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000);
+        if (!S.leaving && !peer.destroyed) setTimeout(() => { if (!peer.destroyed && peer.disconnected) peer.reconnect(); }, 1000);
     });
+}
+
+// Phones pause background tabs; reconnect to the signaling server as soon as we're back.
+document.addEventListener('visibilitychange', () => {
+    const peer = S.peer;
+    if (document.visibilityState === 'visible' && peer && !peer.destroyed && peer.disconnected && !S.leaving) peer.reconnect();
+});
+
+// Voice is optional: a browser without full WebAudio support must still be able to play.
+function safeInitVoice(peer) {
+    try { initVoice(peer, onSpeaking); } catch (e) { console.warn('voice disabled:', e); }
+}
+function safeSyncVoice(ids) {
+    try { syncVoicePeers(ids); } catch (e) { console.warn('voice sync failed:', e); }
 }
 
 function onSpeaking(set) {
@@ -227,7 +245,7 @@ async function hostStart(restore = null, attempt = 0) {
         if (me) me.peerId = id;
         const gp = S.game?.players.find(p => p.token === myToken);
         if (gp) gp.peerId = id;
-        initVoice(peer, onSpeaking);
+        safeInitVoice(peer);
         hostBroadcast();
         scheduleSkip();
     });
@@ -424,7 +442,7 @@ function hostKick(token) {
 async function clientJoin(code) {
     S.role = 'client';
     S.code = code;
-    banner('ندوّر على الطاولة…');
+    banner('نتصل بسيرفر اللعبة…');
     await iceReady;
     const peer = newPeer();
     S.peer = peer;
@@ -436,8 +454,9 @@ async function clientJoin(code) {
     }, 12000);
     peer.on('open', () => {
         clearTimeout(openTimer);
-        initVoice(peer, onSpeaking);
+        if (!S.joined) banner('ندوّر على الطاولة…');
         connectToHost();
+        safeInitVoice(peer);
     });
     peer.on('error', err => {
         if (err.type === 'peer-unavailable') {
@@ -469,7 +488,14 @@ function connectToHost() {
     });
     conn.on('open', () => {
         clearTimeout(timeout);
+        if (!S.joined) banner('وصلنا للطاولة، ننتظر المضيف…');
         conn.send({ t: 'hello', name: S.name, token: myToken, peerId: S.peer.id });
+        setTimeout(() => {
+            if (S.conn === conn && !S.joined && !S.leaving) {
+                conn.close();
+                failJoin('المضيف ما ردّ. تأكد إن صفحة اللعبة مفتوحة عنده وجرّب مرة ثانية');
+            }
+        }, 10000);
     });
     conn.on('data', msg => clientOnMessage(msg));
     conn.on('close', () => { clearTimeout(timeout); if (S.conn === conn) onHostLost(); });
@@ -553,7 +579,7 @@ function applySync(lobby, view) {
     S.lobbyInfo = lobby;
     S.view = view;
     S.pending = false;
-    syncVoicePeers(lobby.players.filter(p => p.connected).map(p => p.peerId));
+    safeSyncVoice(lobby.players.filter(p => p.connected).map(p => p.peerId));
 
     if (lobby.phase === 'lobby' || !view) {
         closeDialog('dlg-win');
@@ -702,7 +728,7 @@ function renderLobby() {
     start.hidden = !isHost;
     start.disabled = n < 2;
     $('start-hint').textContent = isHost
-        ? (n < 2 ? 'شارك الكود مع ربعك. تحتاج لاعب ثاني على الأقل' : 'جاهزين؟ وزّع الورق لما يدخل الكل')
+        ? (n < 2 ? 'شارك الكود مع ربعك، وخل هالصفحة مفتوحة لين يدخلون' : 'جاهزين؟ وزّع الورق لما يدخل الكل')
         : 'بانتظار المضيف يوزّع الورق';
     $('start-hint').classList.toggle('waiting-dots', !isHost);
     updateMicButtons();
