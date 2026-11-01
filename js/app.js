@@ -148,9 +148,37 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ---------- peer helpers ----------
+const STUN_SERVERS = [
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+];
+let iceServers = STUN_SERVERS;
+let hasRelay = false;
+
+// TURN relay credentials come from a Netlify function (see netlify/functions/turn.mjs).
+const iceReady = (async () => {
+    try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch('/.netlify/functions/turn', { signal: ctrl.signal, cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.iceServers?.length) {
+            iceServers = [...STUN_SERVERS, ...data.iceServers];
+            hasRelay = true;
+        }
+    } catch (e) { /* no relay: direct connections only */ }
+})();
+
 function newPeer(id) {
-    const opts = { debug: 1 };
+    const opts = { debug: 1, config: { iceServers } };
     return id ? new Peer(id, opts) : new Peer(opts);
+}
+
+function networkBlockedMsg() {
+    return hasRelay
+        ? 'ما قدرنا نوصل للطاولة. تأكد من الإنترنت وجرّب مرة ثانية'
+        : 'الشبكة تمنع الاتصال المباشر بالطاولة. جرّبوا نفس الواي فاي، أو طفّوا الـ VPN';
 }
 
 function watchPeer(peer) {
@@ -171,7 +199,8 @@ function onSpeaking(set) {
 // =====================================================================
 // HOST
 // =====================================================================
-function hostStart(restore = null, attempt = 0) {
+async function hostStart(restore = null, attempt = 0) {
+    await iceReady;
     S.role = 'host';
     const code = restore?.code || makeCode();
     banner(restore ? 'نرجّع الطاولة…' : '');
@@ -392,14 +421,21 @@ function hostKick(token) {
 // =====================================================================
 // CLIENT
 // =====================================================================
-function clientJoin(code) {
+async function clientJoin(code) {
     S.role = 'client';
     S.code = code;
     banner('ندوّر على الطاولة…');
+    await iceReady;
     const peer = newPeer();
     S.peer = peer;
     watchPeer(peer);
+    const openTimer = setTimeout(() => {
+        if (S.peer !== peer || peer.open) return;
+        if (S.joined) scheduleRetry();
+        else failJoin('ما قدرنا نوصل لسيرفر اللعبة. تأكد من الإنترنت وجرّب مرة ثانية');
+    }, 12000);
     peer.on('open', () => {
+        clearTimeout(openTimer);
         initVoice(peer, onSpeaking);
         connectToHost();
     });
@@ -419,9 +455,18 @@ function connectToHost() {
     if (S.leaving || !S.peer || S.peer.destroyed) return;
     const conn = S.peer.connect(PEER_PREFIX + S.code, { reliable: true });
     S.conn = conn;
-    const timeout = setTimeout(() => {
-        if (S.conn === conn && !conn.open) { conn.close(); S.joined ? scheduleRetry() : failJoin('الطاولة ما ردّت. تأكد من الكود'); }
-    }, 10000);
+    const giveUp = () => {
+        if (S.conn !== conn || conn.open) return;
+        clearTimeout(timeout);
+        conn.close();
+        if (S.joined) scheduleRetry();
+        else failJoin(networkBlockedMsg());
+    };
+    const timeout = setTimeout(giveUp, 15000);
+    const pc = conn.peerConnection;
+    pc?.addEventListener('iceconnectionstatechange', () => {
+        if (pc.iceConnectionState === 'failed') giveUp();
+    });
     conn.on('open', () => {
         clearTimeout(timeout);
         conn.send({ t: 'hello', name: S.name, token: myToken, peerId: S.peer.id });
